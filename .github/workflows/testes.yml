@@ -1,0 +1,19 @@
+name: testes
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Instala as dependências
+        run: pip install -r requirements-dev.txt
+      - name: Roda os testes (não chamam o Gemini)
+        run: pytest -v

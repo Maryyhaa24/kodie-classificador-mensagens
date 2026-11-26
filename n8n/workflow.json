@@ -1,0 +1,1227 @@
+{
+  "name": "KODIE - Classificador de Mensagens",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mensagem",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "389345b6-e82c-5cc8-8a9c-f426ef950ac4",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        200
+      ],
+      "webhookId": "740d3674-d709-5ffe-8a5e-824a01293b47"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d735ee30-c6d7-5989-a1f2-498c989efb08",
+              "name": "canal",
+              "value": "formulario",
+              "type": "string"
+            },
+            {
+              "id": "0def23fa-6555-56cd-8609-7aa0581de93e",
+              "name": "nome",
+              "value": "={{ $json.body.nome || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "db515bd4-9926-59e4-99b4-68a55e08b66d",
+              "name": "email",
+              "value": "={{ $json.body.email || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "8e3f119d-e389-5643-82e5-860cfe4b4921",
+              "name": "telefone",
+              "value": "={{ $json.body.telefone || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "790f29d6-2de0-5cd6-8b6c-59c7ce3bd514",
+              "name": "mensagem",
+              "value": "={{ $json.body.mensagem || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e02c8902-8a3b-51af-b22d-4aefb03b7b64",
+      "name": "Extrai dados do formulário",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "cda641ba-3e06-508a-81b4-6f5df6e33947",
+      "name": "WhatsApp - Recebe mensagem",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        420
+      ],
+      "webhookId": "03655378-9028-5f75-a0b1-086c11a437e2"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "EVENT_RECEIVED",
+        "options": {}
+      },
+      "id": "194f3719-eba9-5e16-b628-8f2888a15609",
+      "name": "WhatsApp - Confirma recebimento",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Converte o aviso da WhatsApp Cloud API (Meta) nos mesmos campos usados pelo formulário.\n// Avisos sem mensagem (ex.: \"entregue\" e \"lida\") não geram saída, e o fluxo termina aqui.\nconst saida = [];\n\nfor (const entrada of $input.first().json.body?.entry ?? []) {\n  for (const mudanca of entrada.changes ?? []) {\n    const valor = mudanca.value ?? {};\n    for (const msg of valor.messages ?? []) {\n      const contato = (valor.contacts ?? []).find((c) => c.wa_id === msg.from) ?? valor.contacts?.[0];\n      const texto =\n        msg.text?.body ||\n        msg.button?.text ||\n        msg.interactive?.button_reply?.title ||\n        msg.interactive?.list_reply?.title ||\n        msg.image?.caption ||\n        msg.video?.caption ||\n        msg.document?.caption ||\n        `[${msg.type}]`; // áudio, figurinha, localização...: a IA encaminha para revisão humana\n\n      saida.push({\n        json: {\n          canal: 'whatsapp',\n          nome: contato?.profile?.name || 'Cliente',\n          email: '',\n          telefone: msg.from,\n          mensagem: texto,\n          wa_message_id: msg.id,\n          wa_tipo: msg.type,\n          wa_phone_number_id: valor.metadata?.phone_number_id ?? '',\n        },\n      });\n    }\n  }\n}\n\nreturn saida;\n"
+      },
+      "id": "6e7996e2-1ff0-55ab-83e5-c16695137914",
+      "name": "Extrai dados do WhatsApp",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "40d5afff-1380-5bc1-ad33-32d79893f74b",
+              "name": "id",
+              "value": "={{ 'MSG-' + $execution.id + ($itemIndex > 0 ? '-' + ($itemIndex + 1) : '') }}",
+              "type": "string"
+            },
+            {
+              "id": "0081fce8-06a5-59ae-be54-ad9af79bddd4",
+              "name": "recebido_em",
+              "value": "={{ $now.toFormat('dd/MM/yyyy HH:mm:ss') }}",
+              "type": "string"
+            },
+            {
+              "id": "a2248c06-8424-52cb-b079-6ddc1a9224a6",
+              "name": "nome",
+              "value": "={{ String($json.nome || '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "8b976009-ea2d-5c83-8f77-8ffd0f83e5bb",
+              "name": "email",
+              "value": "={{ String($json.email || '').trim().toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "eea2d3f7-0617-550d-950a-941a41b0c738",
+              "name": "telefone",
+              "value": "={{ String($json.telefone || '').replace(/\\D/g, '') }}",
+              "type": "string"
+            },
+            {
+              "id": "74549cec-ff85-5af1-bc90-8d6746c33655",
+              "name": "mensagem",
+              "value": "={{ String($json.mensagem || '').trim() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {},
+        "includeOtherFields": true
+      },
+      "id": "21186c67-684f-54af-bb2a-7fa1fed2f439",
+      "name": "Normaliza dados",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/classificar",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ canal: $json.canal, nome: $json.nome, email: $json.email || null, telefone: $json.telefone || null, mensagem: $json.mensagem }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "ab6302b1-05e9-508e-870a-56678a60e824",
+      "name": "Classificar com IA (API)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "31777929-86e3-5086-b3dc-a9f10736f13f",
+              "name": "categoria",
+              "value": "outro",
+              "type": "string"
+            },
+            {
+              "id": "06f84d08-0c72-5b22-9bd0-57ed1cc6a6a0",
+              "name": "setor",
+              "value": "revisao_humana",
+              "type": "string"
+            },
+            {
+              "id": "1b1acc20-06ab-5701-a244-c29e75b44592",
+              "name": "prioridade",
+              "value": "media",
+              "type": "string"
+            },
+            {
+              "id": "d22d9e6d-ef58-5a82-ac40-7131f9c4766b",
+              "name": "sentimento",
+              "value": "neutro",
+              "type": "string"
+            },
+            {
+              "id": "23832572-49ba-56c2-8033-74c49a487fab",
+              "name": "resumo",
+              "value": "A classificação automática não respondeu. Mensagem encaminhada para revisão humana.",
+              "type": "string"
+            },
+            {
+              "id": "2225ee2e-2942-5a21-a374-33996689e3c1",
+              "name": "resposta_sugerida",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "a10acce8-97d2-57bc-98c5-5a2d22d93d0b",
+              "name": "confianca",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "id": "39e7ca3b-f8e9-53ea-affc-2749f26bcd3a",
+              "name": "canal",
+              "value": "={{ $('Normaliza dados').item.json.canal }}",
+              "type": "string"
+            },
+            {
+              "id": "f43e1cf0-c5ba-51d1-8e63-d22f2efa7556",
+              "name": "revisao_humana",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "d6768ef0-fa7e-54ba-901e-1e12d0c6f41a",
+              "name": "motivos_revisao",
+              "value": "={{ ['classificação automática indisponível'] }}",
+              "type": "array"
+            },
+            {
+              "id": "9fb8c030-4bf7-543e-922a-c8c0b7d39ddb",
+              "name": "resposta_cliente",
+              "value": "={{ ($('Normaliza dados').item.json.nome ? 'Olá, ' + $('Normaliza dados').item.json.nome.split(' ')[0] + '!' : 'Olá!') + ' Recebemos sua mensagem e um atendente vai falar com você em breve.' }}",
+              "type": "string"
+            },
+            {
+              "id": "5c3f961e-679a-5efb-a3ee-a7a5765a7933",
+              "name": "origem",
+              "value": "contingencia",
+              "type": "string"
+            },
+            {
+              "id": "d32a0c78-ca9e-5096-9788-cf4eb2cd2e19",
+              "name": "tentativas",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "id": "fcf91f5c-d7ac-52cd-ab69-7d089bcb6c07",
+              "name": "erro_ia",
+              "value": "={{ String($json.error?.message || $json.error?.description || $json.error || 'a API não respondeu').slice(0, 300) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2d26b79f-f373-5316-9942-96dd3e202765",
+      "name": "Classificação de contingência",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1200,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a0d8ee24-e76d-587c-a0e6-32ebe469d9d7",
+              "name": "id",
+              "value": "={{ $('Normaliza dados').item.json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "f3d2ad7f-ddd7-507a-a4ab-114a94ff4e75",
+              "name": "recebido_em",
+              "value": "={{ $('Normaliza dados').item.json.recebido_em }}",
+              "type": "string"
+            },
+            {
+              "id": "38b323cc-37b1-50bf-b8bf-08607ab2e0c3",
+              "name": "nome",
+              "value": "={{ $('Normaliza dados').item.json.nome }}",
+              "type": "string"
+            },
+            {
+              "id": "dcf27f00-609f-5dec-90f8-c43178bc208b",
+              "name": "email",
+              "value": "={{ $('Normaliza dados').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "70e2477f-5903-556f-8e07-d3c3d282c589",
+              "name": "telefone",
+              "value": "={{ $('Normaliza dados').item.json.telefone }}",
+              "type": "string"
+            },
+            {
+              "id": "708a28db-4849-5502-a0b2-af1299c00334",
+              "name": "mensagem",
+              "value": "={{ $('Normaliza dados').item.json.mensagem }}",
+              "type": "string"
+            },
+            {
+              "id": "013b72fc-134e-5c32-a47e-32038d4f65c8",
+              "name": "contato",
+              "value": "={{ $('Normaliza dados').item.json.canal === 'whatsapp' ? '+' + $('Normaliza dados').item.json.telefone : ($('Normaliza dados').item.json.email || $('Normaliza dados').item.json.telefone) }}",
+              "type": "string"
+            },
+            {
+              "id": "e514563a-a96c-52e4-a446-acbec372aa61",
+              "name": "wa_phone_number_id",
+              "value": "={{ $('Normaliza dados').item.json.wa_phone_number_id || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "16d5a209-2419-5d2c-960c-e71ade742ed8",
+              "name": "mensagem_cliente",
+              "value": "={{ $json.resposta_cliente + '\\n\\nProtocolo: ' + $('Normaliza dados').item.json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {},
+        "includeOtherFields": true
+      },
+      "id": "31ab633c-1846-55a7-9caf-a8158fa8e67d",
+      "name": "Monta registro",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "05dede26-a857-5904-9c18-239c114a5a78",
+                    "leftValue": "={{ $json.canal }}",
+                    "rightValue": "formulario",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Formulário"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "619ba83b-2766-552a-83ab-ec4cdcc5433f",
+                    "leftValue": "={{ $json.canal }}",
+                    "rightValue": "whatsapp",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "WhatsApp"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f25599be-18b1-5739-9513-59e3e7560266",
+      "name": "Canal de resposta",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1680,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'recebido', protocolo: $json.id, categoria: $json.categoria, setor: $json.setor, prioridade: $json.prioridade, mensagem: $json.mensagem_cliente }) }}",
+        "options": {}
+      },
+      "id": "2f3b74d1-f29b-5290-ac69-ec309eb0033c",
+      "name": "Responde ao cliente",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1920,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v24.0/{{ $json.wa_phone_number_id }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "whatsAppApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.telefone, type: 'text', text: { preview_url: false, body: $json.mensagem_cliente } }) }}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "bb96f3dc-47a2-59b5-be1a-fde17606d8a6",
+      "name": "WhatsApp - Responde ao cliente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1920,
+        80
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "COLE_AQUI_A_URL_DA_PLANILHA"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Atendimentos"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID": "={{ $json.id }}",
+            "Recebido em": "={{ $json.recebido_em }}",
+            "Canal": "={{ $json.canal }}",
+            "Nome": "={{ $json.nome }}",
+            "Contato": "={{ $json.contato }}",
+            "Mensagem": "={{ $json.mensagem }}",
+            "Categoria": "={{ $json.categoria }}",
+            "Setor": "={{ $json.setor }}",
+            "Prioridade": "={{ $json.prioridade }}",
+            "Sentimento": "={{ $json.sentimento }}",
+            "Confiança": "={{ $json.confianca }}",
+            "Resumo": "={{ $json.resumo }}",
+            "Resposta sugerida": "={{ $json.resposta_sugerida }}",
+            "Revisão?": "={{ $json.revisao_humana ? 'sim' : 'não' }}",
+            "Origem IA": "={{ $json.origem }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Recebido em",
+              "displayName": "Recebido em",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Canal",
+              "displayName": "Canal",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nome",
+              "displayName": "Nome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Contato",
+              "displayName": "Contato",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Mensagem",
+              "displayName": "Mensagem",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Categoria",
+              "displayName": "Categoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Setor",
+              "displayName": "Setor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Prioridade",
+              "displayName": "Prioridade",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sentimento",
+              "displayName": "Sentimento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Confiança",
+              "displayName": "Confiança",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Resumo",
+              "displayName": "Resumo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Resposta sugerida",
+              "displayName": "Resposta sugerida",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Revisão?",
+              "displayName": "Revisão?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Origem IA",
+              "displayName": "Origem IA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {
+          "cellFormat": "RAW"
+        }
+      },
+      "id": "943df910-6ec1-5d59-9420-845782473a88",
+      "name": "Registra na planilha",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1680,
+        370
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "84a8c7b2-a720-5ab4-8c8d-aebf46e761c4",
+              "leftValue": "={{ $json.revisao_humana }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0f237031-1a25-523e-9b01-72a6e36ec314",
+      "name": "Precisa de revisão?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1680,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "SEU_EMAIL+revisao@gmail.com",
+        "subject": "=[REVISÃO] {{ $json.categoria }} · {{ $json.nome }} ({{ $json.motivos_revisao.join(', ') }})",
+        "emailType": "text",
+        "message": "=Protocolo: {{ $json.id }}\nRecebido em: {{ $json.recebido_em }} | Canal: {{ $json.canal }}\nCliente: {{ $json.nome }} ({{ $json.contato }})\nCategoria: {{ $json.categoria }} | Prioridade: {{ $json.prioridade }} | Sentimento: {{ $json.sentimento }} | Confiança: {{ $json.confianca }}\n\nResumo da IA:\n{{ $json.resumo }}\n\nMensagem original:\n{{ $json.mensagem }}\n\nResposta já enviada ao cliente:\n{{ $json.mensagem_cliente }}\n\nSugestão da IA para o atendente:\n{{ $json.resposta_sugerida }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "08bfa5a3-082e-5aa5-bd97-caefcf3a3133",
+      "name": "E-mail Revisão humana",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1920,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7fc37cec-e39e-5485-aff0-a6b7b999f2d7",
+                    "leftValue": "={{ $json.setor }}",
+                    "rightValue": "suporte",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Suporte"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9b65d114-c1df-5d3b-a307-632b7365b3b3",
+                    "leftValue": "={{ $json.setor }}",
+                    "rightValue": "financeiro",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Financeiro"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "33469c34-69a2-500b-8c55-fa931a46a888",
+                    "leftValue": "={{ $json.setor }}",
+                    "rightValue": "comercial",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Comercial"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "188bdd63-ee55-5043-a2a7-3a891498ed16",
+                    "leftValue": "={{ $json.setor }}",
+                    "rightValue": "logistica",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Logística"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ed8b0c3a-a82f-57ca-bf33-49273dbc2836",
+      "name": "Roteia por setor",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1680,
+        1070
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "SEU_EMAIL+suporte@gmail.com",
+        "subject": "=[{{ $json.prioridade.toUpperCase() }}] {{ $json.categoria }} · {{ $json.nome }}",
+        "emailType": "text",
+        "message": "=Protocolo: {{ $json.id }}\nRecebido em: {{ $json.recebido_em }} | Canal: {{ $json.canal }}\nCliente: {{ $json.nome }} ({{ $json.contato }})\nCategoria: {{ $json.categoria }} | Prioridade: {{ $json.prioridade }} | Sentimento: {{ $json.sentimento }} | Confiança: {{ $json.confianca }}\n\nResumo da IA:\n{{ $json.resumo }}\n\nMensagem original:\n{{ $json.mensagem }}\n\nResposta já enviada ao cliente:\n{{ $json.mensagem_cliente }}\n\nSugestão da IA para o atendente:\n{{ $json.resposta_sugerida }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "9f7389cb-bce0-59dd-8232-94a9fa27350a",
+      "name": "E-mail Suporte",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1920,
+        830
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "SEU_EMAIL+financeiro@gmail.com",
+        "subject": "=[{{ $json.prioridade.toUpperCase() }}] {{ $json.categoria }} · {{ $json.nome }}",
+        "emailType": "text",
+        "message": "=Protocolo: {{ $json.id }}\nRecebido em: {{ $json.recebido_em }} | Canal: {{ $json.canal }}\nCliente: {{ $json.nome }} ({{ $json.contato }})\nCategoria: {{ $json.categoria }} | Prioridade: {{ $json.prioridade }} | Sentimento: {{ $json.sentimento }} | Confiança: {{ $json.confianca }}\n\nResumo da IA:\n{{ $json.resumo }}\n\nMensagem original:\n{{ $json.mensagem }}\n\nResposta já enviada ao cliente:\n{{ $json.mensagem_cliente }}\n\nSugestão da IA para o atendente:\n{{ $json.resposta_sugerida }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "2aba58a6-ef54-5979-bec6-986b9f795795",
+      "name": "E-mail Financeiro",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1920,
+        990
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "SEU_EMAIL+comercial@gmail.com",
+        "subject": "=[{{ $json.prioridade.toUpperCase() }}] {{ $json.categoria }} · {{ $json.nome }}",
+        "emailType": "text",
+        "message": "=Protocolo: {{ $json.id }}\nRecebido em: {{ $json.recebido_em }} | Canal: {{ $json.canal }}\nCliente: {{ $json.nome }} ({{ $json.contato }})\nCategoria: {{ $json.categoria }} | Prioridade: {{ $json.prioridade }} | Sentimento: {{ $json.sentimento }} | Confiança: {{ $json.confianca }}\n\nResumo da IA:\n{{ $json.resumo }}\n\nMensagem original:\n{{ $json.mensagem }}\n\nResposta já enviada ao cliente:\n{{ $json.mensagem_cliente }}\n\nSugestão da IA para o atendente:\n{{ $json.resposta_sugerida }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "cbdc299e-3270-5ceb-864d-761851455ac3",
+      "name": "E-mail Comercial",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1920,
+        1150
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "SEU_EMAIL+logistica@gmail.com",
+        "subject": "=[{{ $json.prioridade.toUpperCase() }}] {{ $json.categoria }} · {{ $json.nome }}",
+        "emailType": "text",
+        "message": "=Protocolo: {{ $json.id }}\nRecebido em: {{ $json.recebido_em }} | Canal: {{ $json.canal }}\nCliente: {{ $json.nome }} ({{ $json.contato }})\nCategoria: {{ $json.categoria }} | Prioridade: {{ $json.prioridade }} | Sentimento: {{ $json.sentimento }} | Confiança: {{ $json.confianca }}\n\nResumo da IA:\n{{ $json.resumo }}\n\nMensagem original:\n{{ $json.mensagem }}\n\nResposta já enviada ao cliente:\n{{ $json.mensagem_cliente }}\n\nSugestão da IA para o atendente:\n{{ $json.resposta_sugerida }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "9d54c70d-2faa-52a0-87a1-0844e074b777",
+      "name": "E-mail Logística",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1920,
+        1310
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "whatsapp",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "7999f7ed-f335-597e-8d41-a35ae1aa48f8",
+      "name": "WhatsApp - Verificação (GET)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        720
+      ],
+      "webhookId": "2fd7e04f-9fd8-5c08-9535-eec1e86e588b"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $env.WHATSAPP_VERIFY_TOKEN && $json.query['hub.verify_token'] === $env.WHATSAPP_VERIFY_TOKEN ? $json.query['hub.challenge'] : 'token de verificacao invalido' }}",
+        "options": {
+          "responseCode": "={{ $env.WHATSAPP_VERIFY_TOKEN && $json.query['hub.verify_token'] === $env.WHATSAPP_VERIFY_TOKEN ? 200 : 403 }}"
+        }
+      },
+      "id": "867b8c17-4b93-5293-bdb2-10d69661b9d7",
+      "name": "WhatsApp - Responde verificação",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 1 · Entradas\nO cliente escreve pelo **formulário do site** (Webhook) ou pelo **WhatsApp** (WhatsApp Cloud API). As duas entradas extraem os mesmos campos: canal, nome, contato e mensagem.",
+        "height": 540,
+        "width": 740,
+        "color": 4
+      },
+      "id": "37df376b-7fea-5189-b3b8-03ce6459272d",
+      "name": "Nota - Entradas",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 2 · Classificação com IA\nOs dados são normalizados e enviados à **API FastAPI**, que usa o **Gemini** e devolve um JSON validado. Se a API não responder, a mensagem segue para revisão humana.",
+        "height": 460,
+        "width": 920,
+        "color": 5
+      },
+      "id": "2c6e9c27-2d2c-5706-a072-9babc50f43f4",
+      "name": "Nota - IA",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        680,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 3 · Resposta ao cliente\nA confirmação volta pelo mesmo canal por onde a mensagem chegou.",
+        "height": 460,
+        "width": 500,
+        "color": 6
+      },
+      "id": "b747e8b9-ee9c-5584-9d82-ff0fbf7f2ec1",
+      "name": "Nota - Resposta",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1640,
+        -220
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 4 · Registro e revisão\nTudo é gravado na planilha. Casos urgentes ou duvidosos avisam uma pessoa.",
+        "height": 440,
+        "width": 500,
+        "color": 3
+      },
+      "id": "62dc8f3b-df74-5995-9520-cbbf868ab1f2",
+      "name": "Nota - Registro",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1640,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 5 · Encaminhamento\nCada setor recebe por e-mail as mensagens que são dele.",
+        "height": 760,
+        "width": 500,
+        "color": 7
+      },
+      "id": "cc693bb3-6d95-57d3-beda-e10164119af4",
+      "name": "Nota - Encaminhamento",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1640,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Verificação do webhook (Meta)\nA Meta chama este endereço uma vez, ao cadastrar o webhook, para conferir o token.",
+        "height": 260,
+        "width": 500,
+        "color": 2
+      },
+      "id": "79f9c296-408d-5970-830b-f88653cc71db",
+      "name": "Nota - Verificacao",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        620
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extrai dados do formulário",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrai dados do formulário": {
+      "main": [
+        [
+          {
+            "node": "Normaliza dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp - Recebe mensagem": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp - Confirma recebimento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp - Confirma recebimento": {
+      "main": [
+        [
+          {
+            "node": "Extrai dados do WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrai dados do WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Normaliza dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normaliza dados": {
+      "main": [
+        [
+          {
+            "node": "Classificar com IA (API)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classificar com IA (API)": {
+      "main": [
+        [
+          {
+            "node": "Monta registro",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Classificação de contingência",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classificação de contingência": {
+      "main": [
+        [
+          {
+            "node": "Monta registro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monta registro": {
+      "main": [
+        [
+          {
+            "node": "Canal de resposta",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Registra na planilha",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Precisa de revisão?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Roteia por setor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Canal de resposta": {
+      "main": [
+        [
+          {
+            "node": "Responde ao cliente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "WhatsApp - Responde ao cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Precisa de revisão?": {
+      "main": [
+        [
+          {
+            "node": "E-mail Revisão humana",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Roteia por setor": {
+      "main": [
+        [
+          {
+            "node": "E-mail Suporte",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "E-mail Financeiro",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "E-mail Comercial",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "E-mail Logística",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp - Verificação (GET)": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp - Responde verificação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Sao_Paulo"
+  },
+  "tags": []
+}

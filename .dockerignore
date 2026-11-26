@@ -1,0 +1,13 @@
+.env
+.git
+.github
+.venv
+.n8n-local
+__pycache__
+.pytest_cache
+.claude
+docs
+demo
+exemplos
+n8n
+tests

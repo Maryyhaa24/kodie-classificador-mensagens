@@ -1,0 +1,106 @@
+[
+  {
+    "rotulo": "cobranca-dupla",
+    "canal": "formulario",
+    "nome": "Ana Souza",
+    "email": "ana.souza@cliente.demo",
+    "mensagem": "Fui cobrada duas vezes no boleto de outubro! Quero o estorno urgente.",
+    "esperado": {"categoria": "reclamacao", "setor": "financeiro", "prioridade": "urgente"}
+  },
+  {
+    "rotulo": "prazo-entrega",
+    "canal": "formulario",
+    "nome": "Bruno Lima",
+    "email": "bruno@cliente.demo",
+    "mensagem": "Qual o prazo de entrega para Belo Horizonte? Comprei ontem.",
+    "esperado": {"categoria": "duvida", "setor": "logistica", "prioridade": "baixa"}
+  },
+  {
+    "rotulo": "orcamento",
+    "canal": "formulario",
+    "nome": "Carla Mendes",
+    "email": "carla@empresa-cliente.demo",
+    "mensagem": "Gostaria de um orçamento para 50 licenças do sistema para minha empresa.",
+    "esperado": {"categoria": "solicitacao", "setor": "comercial", "prioridade": "media"}
+  },
+  {
+    "rotulo": "erro-acesso",
+    "canal": "formulario",
+    "nome": "Diego Rocha",
+    "email": "diego@cliente.demo",
+    "mensagem": "Não consigo acessar o sistema, aparece erro de senha desde ontem.",
+    "esperado": {"categoria": "reclamacao", "setor": "suporte", "prioridade": "alta"}
+  },
+  {
+    "rotulo": "elogio",
+    "canal": "formulario",
+    "nome": "Elisa Prado",
+    "email": "elisa@cliente.demo",
+    "mensagem": "Parabéns pelo atendimento, a equipe foi excelente!",
+    "esperado": {"categoria": "elogio", "setor": "suporte", "prioridade": "baixa"}
+  },
+  {
+    "rotulo": "pedido-atrasado",
+    "canal": "formulario",
+    "nome": "Fábio Teles",
+    "email": "fabio@cliente.demo",
+    "mensagem": "Meu pedido 4587 ainda não chegou e já passou 15 dias. Vou abrir reclamação no Procon.",
+    "esperado": {"categoria": "reclamacao", "setor": "logistica", "prioridade": "urgente"}
+  },
+  {
+    "rotulo": "nota-fiscal",
+    "canal": "formulario",
+    "nome": "Gabriela Nunes",
+    "email": "gabi@cliente.demo",
+    "mensagem": "Preciso da segunda via da nota fiscal do pedido 3321.",
+    "esperado": {"categoria": "solicitacao", "setor": "financeiro", "prioridade": "media"}
+  },
+  {
+    "rotulo": "mensagem-vaga",
+    "canal": "formulario",
+    "nome": "Hugo Alves",
+    "email": "hugo@cliente.demo",
+    "mensagem": "oi",
+    "esperado": {"categoria": "outro", "setor": "revisao_humana", "prioridade": "media"}
+  },
+  {
+    "rotulo": "whatsapp-pix",
+    "canal": "whatsapp",
+    "nome": "Ivo Santos",
+    "telefone": "5531988887777",
+    "mensagem": "oi, paguei o boleto ontem no pix e ainda aparece em aberto, qual o problema??",
+    "esperado": {"categoria": "reclamacao", "setor": "financeiro", "prioridade": "alta"}
+  },
+  {
+    "rotulo": "whatsapp-rastreio",
+    "canal": "whatsapp",
+    "nome": "Júlia Reis",
+    "telefone": "5511977776666",
+    "mensagem": "boa tarde! qnd chega meu pedido? o rastreio nao atualiza faz 3 dias",
+    "esperado": {"categoria": "duvida", "setor": "logistica", "prioridade": "baixa"}
+  },
+  {
+    "rotulo": "whatsapp-desconto",
+    "canal": "whatsapp",
+    "nome": "Kleber Dias",
+    "telefone": "5521966665555",
+    "mensagem": "vcs fazem desconto pra compra acima de 10 unidades? quero fechar hoje",
+    "esperado": {"categoria": "solicitacao", "setor": "comercial", "prioridade": "media"}
+  },
+  {
+    "rotulo": "whatsapp-elogio",
+    "canal": "whatsapp",
+    "nome": "Lia Moraes",
+    "telefone": "5541955554444",
+    "mensagem": "adorei o atendimento de vcs, obrigada 😍",
+    "esperado": {"categoria": "elogio", "setor": "suporte", "prioridade": "baixa"}
+  },
+  {
+    "rotulo": "whatsapp-audio",
+    "canal": "whatsapp",
+    "nome": "Marcos Pires",
+    "telefone": "5551944443333",
+    "mensagem": "[audio]",
+    "esperado": {"categoria": "outro", "setor": "revisao_humana", "prioridade": "media"}
+  }
+]

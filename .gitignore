@@ -1,0 +1,21 @@
+# segredos
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# n8n instalado localmente, sem Docker (programa, dados e credenciais)
+.n8n-local/
+
+# material de apoio e pacotes gerados (não fazem parte da entrega)
+PROJETO.md
+*.zip
+
+# editores / ferramentas locais
+.vscode/
+.idea/
+.claude/

@@ -1,0 +1,37 @@
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "CONTA_SIMULADA",
+      "changes": [
+        {
+          "field": "messages",
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "5531900000000",
+              "phone_number_id": "NUMERO_SIMULADO"
+            },
+            "contacts": [
+              {
+                "profile": { "name": "Ivo Santos" },
+                "wa_id": "5531988887777"
+              }
+            ],
+            "messages": [
+              {
+                "from": "5531988887777",
+                "id": "wamid.SIMULADO0001",
+                "timestamp": "1795600000",
+                "type": "text",
+                "text": {
+                  "body": "oi, paguei o boleto ontem no pix e ainda aparece em aberto, qual o problema??"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
